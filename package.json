@@ -8,5 +8,10 @@
   },
   "keywords": [],
   "author": "Jelmer Tjoelker",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "animejs": "^3.2.1",
+    "gulp": "^4.0.2",
+    "sass": "^1.54.0"
+  }
 }
