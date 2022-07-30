@@ -1,0 +1,12 @@
+{
+  "name": "33rpm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@tjoelker:tjoelker/33rpm.git"
+  },
+  "keywords": [],
+  "author": "Jelmer Tjoelker",
+  "license": "ISC"
+}
