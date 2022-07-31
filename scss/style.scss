@@ -1,3 +1,94 @@
+@mixin flex {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+$vinyl: linear-gradient(90deg, rgba(0,0,0,1) 49%, rgba(255,255,255,1) 50%, rgba(0,0,0,1) 51%);
+
 * {
   box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.container {
+  width: inherit;
+  height: inherit;
+}
+
+.main {
+  width: inherit;
+  height: inherit;
+}
+
+.input {
+  width: inherit;
+  padding: 8px;
+  position: absolute;
+  z-index: 1;
+
+  .url {
+    width: inherit;
+    background: rgba($color: #000000, $alpha: 0);
+    border: none;
+    font-family: 'Anonymous Pro', monospace;
+    font-size: 18px;
+    color: white;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.wrapper {
+  @include flex;
+  width: inherit;
+  height: inherit;
+  z-index: 0;
+
+  .disk {
+    @include flex;
+    width: 333vw; // t.b.a.
+    position: absolute;
+    background: $vinyl;
+    border-radius: 100%;
+
+    .label {
+      @include flex;
+   // width: auto; // width is defined in @media queries
+      background: white;
+      border-radius: 100%;
+
+      .spindle {
+        aspect-ratio: 1 / 1;
+        width: 10%; // 7.2mm ~ 7.2% of 100mm
+        background: black;
+        border-radius: 100%;
+      }
+    }
+  }
+}
+
+@media only screen and (orientation: landscape) {
+  .label {
+    width: auto;
+    height: 80vh;
+  }
+}
+
+@media only screen and (orientation: portrait) {
+  .label {
+    width: 80vw;
+    height: auto;
+  }
 }
