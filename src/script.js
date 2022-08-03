@@ -4,10 +4,9 @@ var vinyl = document.querySelector('.disk');
 var playing = false;
 var grabbing = false;
 var moving = false;
-var options = {
-  touchMode: 'wheel',
-  minDegree: 0
-};
+var seconds = 0;
+var update = 0;
+var loopCount = 0;
 
 vinyl.onmousedown = function () {
   grabbing = true; // console.log('mousedown');
@@ -60,5 +59,13 @@ var rotation = anime({
     easing: 'linear',
     duration: 1800,
     value: 360
+  },
+  change: function change() {
+    seconds += 0.01765; // needs refinement; too sensitivy(!)
+
+    update++; // 1 loop = ~106 changes
+  },
+  loopBegin: function loopBegin() {
+    loopCount++;
   }
 });
