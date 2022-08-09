@@ -1,4 +1,5 @@
 const vinyl = document.querySelector('.disk');
+let vinylAngle = 0;
 let playing = false;
 let grabbing = false;
 let moving = false;
@@ -6,17 +7,36 @@ let seconds = 0;
 let update = 0;
 let loopCount = 0;
 
+function getTransformRotate(vinyl) {
+  let vinylStyle = window.getComputedStyle(vinyl, null);
+  let transformRotate = vinylStyle.getPropertyValue('transform');
+  let matrixValues = transformRotate.split('(')[1];
+      matrixValues = matrixValues.split(')')[0];
+      matrixValues = matrixValues.split(',');
+  let matrix = {
+    a: matrixValues[0],
+    b: matrixValues[1],
+    c: matrixValues[2],
+    d: matrixValues[3],
+  };
+  let radians = Math.atan2(matrix.b, matrix.a);
+  if (radians < 0) radians += (2 * Math.PI);
+  vinylAngle = Math.round(radians * (180 / Math.PI));
+  vinyl.style.transform = `rotate(${vinylAngle}deg)`;
+  return vinylAngle;
+};
+
 vinyl.onmousedown = function() {
+  getTransformRotate(vinyl);
   grabbing = true;
   // console.log('mousedown');
   if (grabbing == true) {
     rotation.pause();
     vinyl.onmousemove = function() {
-      // playing = false;
       moving = true;  // needs refinement; too sensitivy(!)
       // console.log('mousemove');
 
-      /* grab & rotate function */
+      grabRotate();
 
 
       if (moving == true) {
@@ -30,6 +50,7 @@ vinyl.onmousedown = function() {
           grabbing = false;
           moving = false;
           // return console.log('mousemove > grabbing = false')
+          getTransformRotate(vinyl);
         }
       }
     }
@@ -44,6 +65,7 @@ vinyl.onmousedown = function() {
       }
       grabbing = false;
       // return console.log('mouseup > grabbing = false')
+      getTransformRotate(vinyl);
     }
   }
 };
@@ -52,6 +74,7 @@ const rotation = anime({
   targets: '.disk',
   autoplay: false,
   loop: true,
+  from: vinylAngle,
   rotate: {
     easing: 'linear',
     duration: 1800,
@@ -66,7 +89,7 @@ const rotation = anime({
   },
 });
 
-(function() {
+function grabRotate() {
   let init
     , rotate
     , start
@@ -79,25 +102,23 @@ const rotation = anime({
       x: 0,
       y: 0,
     }
-    , r2d = 180 / Math.PI;
-
+    , radiansToDegrees = 180 / Math.PI;
   init = function() {
-    vinyl.addEventListener('mousedown', start, false); // when clicked
-      $(document).bind('mousemove', function(event) {     // and start moving
-        if (active == true) {                          // if moving (true)
-          console.log('mousemove');
+    vinyl.addEventListener('mousedown', start, false);
+      $(document).bind('mousemove', function(event) {
+        if (active == true) {
           event.preventDefault();
-          rotate(event);                               // start rotate() function for event
+          rotate(event);
         }
       });
-      $(document).bind('mouseup', function(event) {       // when mouse is released
-        console.log('mouseup');
+      $(document).bind('mouseup', function(event) {
         event.preventDefault();
-        stop(event);                                   //  stop rotate()(?) function for event
+        stop(event);
+        getTransformRotate(vinyl);
       })
   };
-
   start = function(event) {
+    getTransformRotate(vinyl);
     event.preventDefault();
     let screen = this.getBoundingClientRect()
       , top = screen.top
@@ -112,23 +133,22 @@ const rotation = anime({
     };
     xAxis = event.clientX - center.x;
     yAxis = event.clientY - center.y;
-    startAngle = r2d * Math.atan2(yAxis, xAxis);
+    startAngle = radiansToDegrees * Math.atan2(yAxis, xAxis);
     return active = true;
   };
-
   rotate = function(event) {
+    getTransformRotate(vinyl);
     event.preventDefault();
     let xAxis = event.clientX - center.x
       , yAxis = event.clientY - center.y
-      , d = r2d * Math.atan2(yAxis, xAxis);
+      , d = radiansToDegrees * Math.atan2(yAxis, xAxis);
     rotations = d - startAngle;
     return vinyl.style.transform = `rotate(${angle + rotations}deg)`;
   };
   stop = function() {
+    getTransformRotate(vinyl);
     angle += rotations;
     return active = false;
   };
-
   init();
-  
-}).call(this);
+};

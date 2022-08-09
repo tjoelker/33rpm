@@ -1,6 +1,7 @@
 "use strict";
 
 var vinyl = document.querySelector('.disk');
+var vinylAngle = 0;
 var playing = false;
 var grabbing = false;
 var moving = false;
@@ -8,18 +9,39 @@ var seconds = 0;
 var update = 0;
 var loopCount = 0;
 
+function getTransformRotate(vinyl) {
+  var vinylStyle = window.getComputedStyle(vinyl, null);
+  var transformRotate = vinylStyle.getPropertyValue('transform');
+  var matrixValues = transformRotate.split('(')[1];
+  matrixValues = matrixValues.split(')')[0];
+  matrixValues = matrixValues.split(',');
+  var matrix = {
+    a: matrixValues[0],
+    b: matrixValues[1],
+    c: matrixValues[2],
+    d: matrixValues[3]
+  };
+  var radians = Math.atan2(matrix.b, matrix.a);
+  if (radians < 0) radians += 2 * Math.PI;
+  vinylAngle = Math.round(radians * (180 / Math.PI));
+  vinyl.style.transform = "rotate(".concat(vinylAngle, "deg)");
+  return vinylAngle;
+}
+
+;
+
 vinyl.onmousedown = function () {
+  getTransformRotate(vinyl);
   grabbing = true; // console.log('mousedown');
 
   if (grabbing == true) {
     rotation.pause();
 
     vinyl.onmousemove = function () {
-      // playing = false;
       moving = true; // needs refinement; too sensitivy(!)
       // console.log('mousemove');
 
-      /* grab & rotate function */
+      grabRotate();
 
       if (moving == true) {
         vinyl.onmouseup = function () {
@@ -32,6 +54,8 @@ vinyl.onmousedown = function () {
 
           grabbing = false;
           moving = false; // return console.log('mousemove > grabbing = false')
+
+          getTransformRotate(vinyl);
         };
       }
     };
@@ -47,6 +71,8 @@ vinyl.onmousedown = function () {
       }
 
       grabbing = false; // return console.log('mouseup > grabbing = false')
+
+      getTransformRotate(vinyl);
     };
   }
 };
@@ -55,6 +81,7 @@ var rotation = anime({
   targets: '.disk',
   autoplay: false,
   loop: true,
+  from: vinylAngle,
   rotate: {
     easing: 'linear',
     duration: 1800,
@@ -69,7 +96,8 @@ var rotation = anime({
     loopCount++;
   }
 });
-(function () {
+
+function grabRotate() {
   var init,
       rotate,
       start,
@@ -82,29 +110,25 @@ var rotation = anime({
     x: 0,
     y: 0
   },
-      r2d = 180 / Math.PI;
+      radiansToDegrees = 180 / Math.PI;
 
   init = function init() {
-    vinyl.addEventListener('mousedown', start, false); // when clicked
-
+    vinyl.addEventListener('mousedown', start, false);
     $(document).bind('mousemove', function (event) {
-      // and start moving
       if (active == true) {
-        // if moving (true)
-        console.log('mousemove');
         event.preventDefault();
-        rotate(event); // start rotate() function for event
+        rotate(event);
       }
     });
     $(document).bind('mouseup', function (event) {
-      // when mouse is released
-      console.log('mouseup');
       event.preventDefault();
-      stop(event); //  stop rotate()(?) function for event
+      stop(event);
+      getTransformRotate(vinyl);
     });
   };
 
   start = function start(event) {
+    getTransformRotate(vinyl);
     event.preventDefault();
     var screen = this.getBoundingClientRect(),
         top = screen.top,
@@ -119,23 +143,27 @@ var rotation = anime({
     };
     xAxis = event.clientX - center.x;
     yAxis = event.clientY - center.y;
-    startAngle = r2d * Math.atan2(yAxis, xAxis);
+    startAngle = radiansToDegrees * Math.atan2(yAxis, xAxis);
     return active = true;
   };
 
   rotate = function rotate(event) {
+    getTransformRotate(vinyl);
     event.preventDefault();
     var xAxis = event.clientX - center.x,
         yAxis = event.clientY - center.y,
-        d = r2d * Math.atan2(yAxis, xAxis);
+        d = radiansToDegrees * Math.atan2(yAxis, xAxis);
     rotations = d - startAngle;
     return vinyl.style.transform = "rotate(".concat(angle + rotations, "deg)");
   };
 
   stop = function stop() {
+    getTransformRotate(vinyl);
     angle += rotations;
     return active = false;
   };
 
   init();
-}).call(void 0);
+}
+
+;
