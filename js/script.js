@@ -1,11 +1,5 @@
 const vinyl = document.querySelector('.disk');
 let vinylAngle = 0;
-let playing = false;
-let grabbing = false;
-let moving = false;
-let seconds = 0;
-let update = 0;
-let loopCount = 0;
 
 function getTransformRotate(vinyl) {
   let vinylStyle = window.getComputedStyle(vinyl, null);
@@ -26,100 +20,42 @@ function getTransformRotate(vinyl) {
   return vinylAngle;
 };
 
-vinyl.onmousedown = function() {
-  getTransformRotate(vinyl);
-  grabbing = true;
-  // console.log('mousedown');
-  if (grabbing == true) {
-    rotation.pause();
-    vinyl.onmousemove = function() {
-      moving = true;  // needs refinement; too sensitivy(!)
-      // console.log('mousemove');
-
-      grabRotate();
-
-
-      if (moving == true) {
-        vinyl.onmouseup = function() {
-          // console.log('mousemove > mouseup');
-          if (playing == true) {
-            rotation.play();
-          } else if (playing == false) {
-            rotation.pause();
-          }
-          grabbing = false;
-          moving = false;
-          // return console.log('mousemove > grabbing = false')
-          getTransformRotate(vinyl);
-        }
-      }
-    }
-    vinyl.onmouseup = function() {
-      // console.log('mousedown > mouseup');
-      if (playing == false) {
-        playing = true
-        rotation.play();
-      } else if (playing == true) {
-        playing = false;
-        rotation.pause();
-      }
-      grabbing = false;
-      // return console.log('mouseup > grabbing = false')
-      getTransformRotate(vinyl);
-    }
-  }
-};
-
-const rotation = anime({
-  targets: '.disk',
-  autoplay: false,
-  loop: true,
-  from: vinylAngle,
-  rotate: {
-    easing: 'linear',
-    duration: 1800,
-    value: 360,
-  },
-  change: function() {
-    seconds += 0.01765;  // needs refinement; too sensitivy(!)
-    update++; // 1 loop = ~106 changes
-  },
-  loopBegin: function() {
-    loopCount++;
-  },
-});
-
-function grabRotate() {
-  let init
-    , rotate
+(function() {
+  let initiate
     , start
+    , rotate
     , stop
-    , active = false
-    , angle = 0
-    , rotations = 0
-    , startAngle = 0
+    , grabbing = false
+    , rotation = 0
+    , currentAngle = 0
+    , newAngle = 0
     , center = {
-      x: 0,
-      y: 0,
-    }
-    , radiansToDegrees = 180 / Math.PI;
-  init = function() {
+        xAxis: 0,
+        yAxis: 0,
+      };
+
+  initiate = function() {
     vinyl.addEventListener('mousedown', start, false);
       $(document).bind('mousemove', function(event) {
-        if (active == true) {
+        console.log('mousemove');
+        if (grabbing == true) {
           event.preventDefault();
           rotate(event);
         }
       });
+
       $(document).bind('mouseup', function(event) {
+        console.log('mouseup');
         event.preventDefault();
         stop(event);
-        getTransformRotate(vinyl);
+        console.log('mouseup: ' + vinylAngle);
       })
   };
+
+  /* 1 / initialized on 'mousedown' */
   start = function(event) {
-    getTransformRotate(vinyl);
     event.preventDefault();
+    console.log('mousedown');
     let screen = this.getBoundingClientRect()
       , top = screen.top
       , left = screen.left
@@ -128,27 +64,34 @@ function grabRotate() {
       , xAxis
       , yAxis;
     center = {
-      x: left + (width / 2),
-      y: top + (height / 2),
+      xAxis: left + (width / 2),
+      yAxis: top + (height / 2),
     };
-    xAxis = event.clientX - center.x;
-    yAxis = event.clientY - center.y;
-    startAngle = radiansToDegrees * Math.atan2(yAxis, xAxis);
-    return active = true;
+    xAxis = event.clientX - center.xAxis;
+    yAxis = event.clientY - center.yAxis;
+    currentAngle = Math.round(Math.atan2(yAxis, xAxis) * (180 / Math.PI));
+    return grabbing = true;
   };
+
+  /* 2 / initialized on 'mousemove' */
   rotate = function(event) {
-    getTransformRotate(vinyl);
     event.preventDefault();
-    let xAxis = event.clientX - center.x
-      , yAxis = event.clientY - center.y
-      , d = radiansToDegrees * Math.atan2(yAxis, xAxis);
-    rotations = d - startAngle;
-    return vinyl.style.transform = `rotate(${angle + rotations}deg)`;
+    let xAxis = event.clientX - center.xAxis
+      , yAxis = event.clientY - center.yAxis
+      , value = 0;
+    value = Math.round(Math.atan2(yAxis, xAxis) * (180 / Math.PI));
+    rotation = value - currentAngle;
+    return vinyl.style.transform = `rotate(${newAngle + rotation}deg)`;
   };
+
+  /* 3 / initialized on 'mouseup' */
   stop = function() {
-    getTransformRotate(vinyl);
-    angle += rotations;
-    return active = false;
+    newAngle += rotation;
+    vinylAngle = newAngle;
+    console.log('stop: ' + vinylAngle);
+    return grabbing = false;
   };
-  init();
-};
+ 
+  initiate();
+  
+}).call(this);
