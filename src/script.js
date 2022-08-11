@@ -2,6 +2,7 @@
 
 var vinyl = document.querySelector('.disk');
 var vinylAngle = 0;
+var playing = true;
 
 function getTransformRotate(vinyl) {
   var vinylStyle = window.getComputedStyle(vinyl, null);
@@ -23,6 +24,27 @@ function getTransformRotate(vinyl) {
 }
 
 ;
+
+var play = function play(angle) {
+  playing = false;
+  $({
+    deg: angle
+  }).animate({
+    deg: angle + 360
+  }, {
+    duration: 1800,
+    easing: 'linear',
+    step: function step(now) {
+      $(vinyl).css({
+        transform: 'rotate(' + Math.round(now) + 'deg)'
+      });
+    },
+    done: function done() {
+      play(angle);
+    }
+  });
+};
+
 (function () {
   var initiate,
       start,
@@ -40,18 +62,14 @@ function getTransformRotate(vinyl) {
   initiate = function initiate() {
     vinyl.addEventListener('mousedown', start, false);
     $(document).bind('mousemove', function (event) {
-      console.log('mousemove');
-
-      if (grabbing == true) {
+      if (grabbing) {
         event.preventDefault();
         rotate(event);
       }
     });
     $(document).bind('mouseup', function (event) {
-      console.log('mouseup');
       event.preventDefault();
       stop(event);
-      console.log('mouseup: ' + vinylAngle);
     });
   };
   /* 1 / initialized on 'mousedown' */
@@ -59,7 +77,6 @@ function getTransformRotate(vinyl) {
 
   start = function start(event) {
     event.preventDefault();
-    console.log('mousedown');
     var screen = this.getBoundingClientRect(),
         top = screen.top,
         left = screen.left,
@@ -94,8 +111,10 @@ function getTransformRotate(vinyl) {
   stop = function stop() {
     newAngle += rotation;
     vinylAngle = newAngle;
-    console.log('stop: ' + vinylAngle);
-    return grabbing = false;
+
+    if (playing) {
+      play(vinylAngle);
+    }
   };
 
   initiate();
