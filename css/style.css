@@ -1,3 +1,16 @@
+:root {
+  --start: 0deg;
+  --stop: 360deg;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(var(--start));
+  }
+  to {
+    transform: rotate(var(--stop));
+  }
+}
 * {
   box-sizing: border-box;
 }
@@ -72,6 +85,17 @@ body {
   width: 10%;
   background: black;
   border-radius: 100%;
+}
+
+.rotate {
+  animation-name: rotate;
+  animation-duration: 1800ms;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.paused {
+  animation-play-state: paused;
 }
 
 @media only screen and (orientation: landscape) {

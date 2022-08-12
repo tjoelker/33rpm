@@ -1,8 +1,9 @@
 "use strict";
 
+var root = document.documentElement;
 var vinyl = document.querySelector('.disk');
-var vinylAngle = 0;
-var playing = true;
+var moving = false,
+    playing = false;
 
 function getTransformRotate(vinyl) {
   var vinylStyle = window.getComputedStyle(vinyl, null);
@@ -18,104 +19,45 @@ function getTransformRotate(vinyl) {
   };
   var radians = Math.atan2(matrix.b, matrix.a);
   if (radians < 0) radians += 2 * Math.PI;
-  vinylAngle = Math.round(radians * (180 / Math.PI));
-  vinyl.style.transform = "rotate(".concat(vinylAngle, "deg)");
-  return vinylAngle;
+  var angle = Math.round(radians * (180 / Math.PI));
+  return angle;
 }
 
 ;
-
-var play = function play(angle) {
-  playing = false;
-  $({
-    deg: angle
-  }).animate({
-    deg: angle + 360
-  }, {
-    duration: 1800,
-    easing: 'linear',
-    step: function step(now) {
-      $(vinyl).css({
-        transform: 'rotate(' + Math.round(now) + 'deg)'
-      });
-    },
-    done: function done() {
-      play(angle);
-    }
-  });
-};
-
-(function () {
-  var initiate,
-      start,
-      rotate,
-      stop,
-      grabbing = false,
-      rotation = 0,
-      currentAngle = 0,
-      newAngle = 0,
-      center = {
-    xAxis: 0,
-    yAxis: 0
-  };
-
-  initiate = function initiate() {
-    vinyl.addEventListener('mousedown', start, false);
-    $(document).bind('mousemove', function (event) {
-      if (grabbing) {
-        event.preventDefault();
-        rotate(event);
-      }
-    });
-    $(document).bind('mouseup', function (event) {
-      event.preventDefault();
-      stop(event);
-    });
-  };
-  /* 1 / initialized on 'mousedown' */
-
-
-  start = function start(event) {
-    event.preventDefault();
-    var screen = this.getBoundingClientRect(),
-        top = screen.top,
-        left = screen.left,
-        width = screen.width,
-        height = screen.height,
-        xAxis,
-        yAxis;
-    center = {
-      xAxis: left + width / 2,
-      yAxis: top + height / 2
-    };
-    xAxis = event.clientX - center.xAxis;
-    yAxis = event.clientY - center.yAxis;
-    currentAngle = Math.round(Math.atan2(yAxis, xAxis) * (180 / Math.PI));
-    return grabbing = true;
-  };
-  /* 2 / initialized on 'mousemove' */
-
-
-  rotate = function rotate(event) {
-    event.preventDefault();
-    var xAxis = event.clientX - center.xAxis,
-        yAxis = event.clientY - center.yAxis,
-        value = 0;
-    value = Math.round(Math.atan2(yAxis, xAxis) * (180 / Math.PI));
-    rotation = value - currentAngle;
-    return vinyl.style.transform = "rotate(".concat(newAngle + rotation, "deg)");
-  };
-  /* 3 / initialized on 'mouseup' */
-
-
-  stop = function stop() {
-    newAngle += rotation;
-    vinylAngle = newAngle;
+var scratch = Draggable.create(vinyl, {
+  cursor: 'pointer',
+  activeCursor: 'grabbing',
+  type: 'rotation',
+  onDrag: function onDrag() {
+    vinyl.classList.add('paused');
+  },
+  onRelease: function onRelease() {
+    root.style.setProperty('--start', getTransformRotate(vinyl) + 'deg');
+    root.style.setProperty('--stop', getTransformRotate(vinyl) + 360 + 'deg');
 
     if (playing) {
-      play(vinylAngle);
+      vinyl.classList.add('rotate');
+      vinyl.classList.remove('paused');
+      console.log('onRelease: class added');
     }
-  };
+  },
+  onClick: function onClick() {
+    console.log('onClick');
+    root.style.setProperty('--start', getTransformRotate(vinyl) + 'deg');
+    root.style.setProperty('--stop', getTransformRotate(vinyl) + 360 + 'deg');
 
-  initiate();
-}).call(void 0);
+    if (!playing) {
+      playing = true;
+      vinyl.classList.add('rotate');
+      vinyl.classList.remove('paused');
+      console.log('class added');
+    } else if (playing) {
+      playing = false;
+      vinyl.classList.remove('rotate');
+      vinyl.classList.add('paused');
+      console.log('class removed');
+    }
+
+    ;
+  }
+});
