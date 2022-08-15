@@ -1,5 +1,6 @@
 "use strict";
 
+var root = document.documentElement;
 var vinyl = document.querySelector('.disk');
 var vinylAngle = 0;
 var playing = false;
@@ -24,59 +25,51 @@ function getTransformRotate(vinyl) {
   var radians = Math.atan2(matrix.b, matrix.a);
   if (radians < 0) radians += 2 * Math.PI;
   vinylAngle = Math.round(radians * (180 / Math.PI));
-  vinyl.style.transform = "rotate(".concat(vinylAngle, "deg)");
   return vinylAngle;
 }
 
-;
+; // vinyl.onmousedown = function() {
+//   getTransformRotate(vinyl);
+//   grabbing = true;
+//   // console.log('mousedown');
+//   if (grabbing == true) {
+//     rotation.pause();
+//     vinyl.onmousemove = function() {
+//       moving = true;  // needs refinement; too sensitivy(!)
+//       // console.log('mousemove');
+//       grabRotate();
+//       if (moving == true) {
+//         vinyl.onmouseup = function() {
+//           // console.log('mousemove > mouseup');
+//           if (playing == true) {
+//             rotation.play();
+//           } else if (playing == false) {
+//             rotation.pause();
+//           }
+//           grabbing = false;
+//           moving = false;
+//           // return console.log('mousemove > grabbing = false')
+//           getTransformRotate(vinyl);
+//         }
+//       }
+//     }
+//     vinyl.onmouseup = function() {
+//       // console.log('mousedown > mouseup');
+//       if (playing == false) {
+//         playing = true
+//         rotation.play();
+//       } else if (playing == true) {
+//         playing = false;
+//         rotation.pause();
+//       }
+//       grabbing = false;
+//       // return console.log('mouseup > grabbing = false')
+//       getTransformRotate(vinyl);
+//     }
+//   }
+// };
 
-vinyl.onmousedown = function () {
-  getTransformRotate(vinyl);
-  grabbing = true; // console.log('mousedown');
-
-  if (grabbing == true) {
-    rotation.pause();
-
-    vinyl.onmousemove = function () {
-      moving = true; // needs refinement; too sensitivy(!)
-      // console.log('mousemove');
-
-      grabRotate();
-
-      if (moving == true) {
-        vinyl.onmouseup = function () {
-          // console.log('mousemove > mouseup');
-          if (playing == true) {
-            rotation.play();
-          } else if (playing == false) {
-            rotation.pause();
-          }
-
-          grabbing = false;
-          moving = false; // return console.log('mousemove > grabbing = false')
-
-          getTransformRotate(vinyl);
-        };
-      }
-    };
-
-    vinyl.onmouseup = function () {
-      // console.log('mousedown > mouseup');
-      if (playing == false) {
-        playing = true;
-        rotation.play();
-      } else if (playing == true) {
-        playing = false;
-        rotation.pause();
-      }
-
-      grabbing = false; // return console.log('mouseup > grabbing = false')
-
-      getTransformRotate(vinyl);
-    };
-  }
-};
-
+grabRotate();
 var rotation = anime({
   targets: '.disk',
   autoplay: false,
@@ -123,13 +116,12 @@ function grabRotate() {
     $(document).bind('mouseup', function (event) {
       event.preventDefault();
       stop(event);
-      getTransformRotate(vinyl);
     });
   };
 
   start = function start(event) {
-    getTransformRotate(vinyl);
     event.preventDefault();
+    vinyl.classList.add('paused');
     var screen = this.getBoundingClientRect(),
         top = screen.top,
         left = screen.left,
@@ -148,18 +140,19 @@ function grabRotate() {
   };
 
   rotate = function rotate(event) {
-    getTransformRotate(vinyl);
     event.preventDefault();
     var xAxis = event.clientX - center.x,
         yAxis = event.clientY - center.y,
         d = radiansToDegrees * Math.atan2(yAxis, xAxis);
     rotations = d - startAngle;
+    root.style.setProperty('--start', angle + rotations + 'deg');
+    root.style.setProperty('--stop', angle + rotations + 360 + 'deg');
     return vinyl.style.transform = "rotate(".concat(angle + rotations, "deg)");
   };
 
   stop = function stop() {
-    getTransformRotate(vinyl);
     angle += rotations;
+    vinyl.classList.remove('paused');
     return active = false;
   };
 
